@@ -15,6 +15,7 @@ defmodule BlueBird.Writer.Blueprint do
     doc_routes =
       docs.routes
       |> group_routes(:group)
+      |> Enum.sort_by(&(elem(&1,0)))
       |> process_groups(docs.groups)
 
     print_metadata(docs.host) <>
@@ -32,6 +33,7 @@ defmodule BlueBird.Writer.Blueprint do
   defp process_group({nil, routes}, _) do
     routes
     |> group_routes(:resource)
+    |> Enum.sort_by(&(elem(&1,0)))
     |> process_resources
   end
   defp process_group({group_name, routes}, groups_map) do
