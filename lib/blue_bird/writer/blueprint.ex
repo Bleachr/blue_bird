@@ -76,8 +76,62 @@ defmodule BlueBird.Writer.Blueprint do
 
   @spec process_resource({String.t() | nil, [Route.t()]}) :: String.t()
   defp process_resource({_path, routes}) do
-    first_route = Enum.at(routes, 0)
-    "## #{beautify(first_route.resource)} [#{display_path(first_route)}]\n\n" <> process_routes(routes)
+    optional_parameters = find_optional_parameters(routes)
+    resource_id = find_resource_id(routes)
+
+    random_route = Enum.random(routes)
+    path = random_route.path
+           |> strip_resource_id_if_set()
+           |> append_clean_resource_id(resource_id)
+           |> replace_path_params()
+           |> inject_optional_parameters(optional_parameters)
+
+    IO.puts path
+    IO.puts "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
+
+    "## #{beautify(random_route.resource)} [#{path}]\n\n" <> process_routes(routes)
+  end
+
+  @resource_id_regex ~r/:([\w]+)$/
+
+  defp strip_resource_id_if_set(path) do
+    Regex.replace(@resource_id_regex, path, "")
+  end
+
+  defp append_clean_resource_id(path, resource_id) when is_binary(resource_id) do
+    sep = case String.ends_with?(path, "/") do
+      true -> ""
+      false -> "/"
+    end
+
+    path <> sep <> resource_id
+  end
+
+  defp append_clean_resource_id(path, _) do
+    path
+  end
+
+  def find_resource_id(routes) when is_list(routes) do
+    routes
+    |> Enum.flat_map(&find_resource_id/1)
+    |> Enum.uniq()
+    |> List.first()
+  end
+
+  def find_resource_id(route) do
+    result = Regex.run(@resource_id_regex, route.path, capture: :first)
+
+    result || []
+  end
+
+  defp find_optional_parameters(routes) when is_list(routes) do
+    Enum.flat_map(routes, &find_optional_parameters/1)
+  end
+
+  defp find_optional_parameters(route) do
+    route.parameters
+    |> Enum.filter(&(&1.optional))
+    |> Enum.map(&(&1.name))
   end
 
   ## Routes
@@ -262,6 +316,18 @@ defmodule BlueBird.Writer.Blueprint do
   defp print_route_definition(route) do
     print_route_header(route.method, route.title) <>
       print_route_description(route.description)
+  end
+
+  defp inject_optional_parameters(path, parameters) when is_list(parameters) do
+    if Enum.empty?(parameters) do
+      path
+    else
+      path <> "{?#{Enum.join(parameters, ",")}}"
+    end
+  end
+
+  defp inject_optional_parameters(path, _) do
+    path
   end
 
   @spec print_route_header(String.t(), String.t() | nil) :: String.t()
