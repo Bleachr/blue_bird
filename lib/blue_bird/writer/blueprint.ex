@@ -267,10 +267,10 @@ defmodule BlueBird.Writer.Blueprint do
   end
 
   @spec print_route_header(String.t(), String.t() | nil) :: String.t()
-  defp print_route_header(method, nil), do: "### #{method}\n"
+  defp print_route_header(method, nil), do: "### #{beautify(method)}\n"
 
   defp print_route_header(method, title) do
-    "### #{title} [#{method}]\n"
+    "### #{beautify(title)} [#{method}]\n"
   end
 
   @spec print_route_description(String.t() | nil) :: String.t()
