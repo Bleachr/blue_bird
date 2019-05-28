@@ -333,7 +333,7 @@ defmodule BlueBird.Writer.Blueprint do
 
   @spec optional_to_str(boolean) :: String.t()
   defp optional_to_str(true), do: "optional"
-  defp optional_to_str(false), do: "required"
+  defp optional_to_str(_), do: "required"
 
   @spec description_to_str(String.t() | nil) :: String.t()
   defp description_to_str(nil), do: ""
