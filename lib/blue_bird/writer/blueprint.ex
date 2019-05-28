@@ -16,6 +16,7 @@ defmodule BlueBird.Writer.Blueprint do
       docs.routes
       |> group_routes(:group)
       |> Enum.sort_by(&(elem(&1,0)))
+      |> Enum.map(fn {group_name, routes} -> {beautify(group_name), routes} end)
       |> process_groups(docs.groups)
 
     print_metadata(docs.host) <>
@@ -39,9 +40,25 @@ defmodule BlueBird.Writer.Blueprint do
   defp process_group({group_name, routes}, groups_map) do
     grouped_routes = group_routes(routes, :resource)
 
-    "# Group #{group_name}\n\n" <>
+    "# Group #{beautify(group_name)}\n\n" <>
       group_description(Map.get(groups_map, group_name, "")) <>
       process_resources(grouped_routes)
+  end
+
+  @spec beautify(atom() | String.t() | any()) :: (atom() | String.t() | any())
+  def beautify(val) when is_atom(val) do
+    val
+    |> Atom.to_string()
+    |> String.replace("_", " ")
+    |> Macro.camelize()
+  end
+  def beautify(val) when is_binary(val) do
+    val
+    |> String.replace("_", " ")
+    |> Macro.camelize()
+  end
+  def beautify(val) do
+    val
   end
 
   @spec group_description(String.t()) :: String.t()
@@ -60,7 +77,7 @@ defmodule BlueBird.Writer.Blueprint do
   @spec process_resource({String.t() | nil, [Route.t()]}) :: String.t()
   defp process_resource({_path, routes}) do
     first_route = Enum.at(routes, 0)
-    "## #{first_route.resource} [#{display_path(first_route)}]\n\n" <> process_routes(routes)
+    "## #{beautify(first_route.resource)} [#{display_path(first_route)}]\n\n" <> process_routes(routes)
   end
 
   ## Routes
