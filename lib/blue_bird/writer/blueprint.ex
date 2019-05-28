@@ -87,9 +87,7 @@ defmodule BlueBird.Writer.Blueprint do
   def process_routes(routes) do
     routes
     |> Enum.sort_by(&{&1.path, &1.method})
-    |> Enum.map_join("\n", fn route ->
-      process_route(route)
-    end)
+    |> Enum.map_join("\n", &process_route(&1))
   end
 
   @doc false

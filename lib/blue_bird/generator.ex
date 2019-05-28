@@ -220,9 +220,17 @@ defmodule BlueBird.Generator do
         ]
   defp filter_headers(headers, type) do
     ignore_headers = get_ignore_headers(type)
+    filter_headers = get_filter_headers(type)
 
-    Enum.reject(headers, fn {key, value} ->
-      value == "" || Enum.member?(ignore_headers, key)
+    headers
+    |> Enum.reject(fn {key, value} -> value == "" || Enum.member?(ignore_headers, key) end)
+    |> Enum.map(fn {key, value} ->
+      new_value = case Enum.member?(filter_headers, key) do
+        true -> "[FILTERED]"
+        _ -> value
+      end
+
+      {key, new_value}
     end)
   end
 
@@ -234,6 +242,16 @@ defmodule BlueBird.Generator do
       _ -> []
     end
   end
+
+  @spec get_filter_headers(atom) :: [String.t()]
+  defp get_filter_headers(type) when type == :request or type == :response do
+    case Config.get(:filter_headers, false) do
+      [_ | _] = headers -> headers
+      %{} = header_map -> Map.get(header_map, type, [])
+      _ -> []
+    end
+  end
+
 
   @spec process_routes([Request.t()], [%PhxRoute{}]) :: [Request.t()]
   defp process_routes(requests_list, routes) do
