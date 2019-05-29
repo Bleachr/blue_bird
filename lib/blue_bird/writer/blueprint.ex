@@ -15,7 +15,7 @@ defmodule BlueBird.Writer.Blueprint do
     doc_routes =
       docs.routes
       |> group_routes(:group)
-      |> Enum.sort_by(&(first_char(elem(&1,0))))
+      |> Enum.sort_by(&first_char(elem(&1, 0)))
       |> Enum.map(fn {group_name, routes} -> {beautify(group_name), routes} end)
       |> process_groups(docs.groups)
 
@@ -34,29 +34,35 @@ defmodule BlueBird.Writer.Blueprint do
   defp process_group({nil, routes}, _) do
     routes
     |> group_routes(:resource)
-    |> Enum.sort_by(&(first_char(elem(&1,0))))
+    |> Enum.sort_by(&first_char(elem(&1, 0)))
     |> process_resources
   end
+
   defp process_group({group_name, routes}, groups_map) do
-    grouped_routes = group_routes(routes, :resource)
+    grouped_routes =
+      routes
+      |> group_routes(:resource)
+      |> Enum.sort_by(&first_char(elem(&1, 0)))
 
     "# Group #{beautify(group_name)}\n\n" <>
       group_description(Map.get(groups_map, group_name, "")) <>
       process_resources(grouped_routes)
   end
 
-  @spec beautify(atom() | String.t() | any()) :: (atom() | String.t() | any())
+  @spec beautify(atom() | String.t() | any()) :: atom() | String.t() | any()
   def beautify(val) when is_atom(val) do
     val
     |> Atom.to_string()
     |> String.replace("_", " ")
     |> Macro.camelize()
   end
+
   def beautify(val) when is_binary(val) do
     val
     |> String.replace("_", " ")
     |> Macro.camelize()
   end
+
   def beautify(val) do
     val
   end
@@ -80,13 +86,16 @@ defmodule BlueBird.Writer.Blueprint do
     resource_id = find_resource_id(routes)
 
     random_route = Enum.random(routes)
-    path = random_route.path
-           |> strip_resource_id_if_set()
-           |> append_clean_resource_id(resource_id)
-           |> replace_path_params()
-           |> inject_optional_parameters(optional_parameters)
 
-    "## #{beautify(random_route.resource)} [#{path}]\n\n" <> process_routes(routes)
+    path =
+      random_route.path
+      |> strip_resource_id_if_set()
+      |> append_clean_resource_id(resource_id)
+      |> replace_path_params()
+      |> inject_optional_parameters(optional_parameters)
+
+    "## #{beautify(random_route.resource)} [#{path}]\n\n" <>
+      process_routes(routes)
   end
 
   @resource_id_regex ~r/:([\w]+)$/
@@ -95,11 +104,13 @@ defmodule BlueBird.Writer.Blueprint do
     Regex.replace(@resource_id_regex, path, "")
   end
 
-  defp append_clean_resource_id(path, resource_id) when is_binary(resource_id) do
-    sep = case String.ends_with?(path, "/") do
-      true -> ""
-      false -> "/"
-    end
+  defp append_clean_resource_id(path, resource_id)
+       when is_binary(resource_id) do
+    sep =
+      case String.ends_with?(path, "/") do
+        true -> ""
+        false -> "/"
+      end
 
     path <> sep <> resource_id
   end
@@ -127,8 +138,8 @@ defmodule BlueBird.Writer.Blueprint do
 
   defp find_optional_parameters(route) do
     route.parameters
-    |> Enum.filter(&(&1.optional))
-    |> Enum.map(&(&1.name))
+    |> Enum.filter(& &1.optional)
+    |> Enum.map(& &1.name)
   end
 
   ## Routes
@@ -214,7 +225,9 @@ defmodule BlueBird.Writer.Blueprint do
     if req_str == "" && content_type == "" do
       ""
     else
-      request_title = request_title(request.response.status, content_type, request.name)
+      request_title =
+        request_title(request.response.status, content_type, request.name)
+
       "+ Request #{request_title} \n\n" <> req_str <> "\n"
     end
   end
@@ -228,9 +241,11 @@ defmodule BlueBird.Writer.Blueprint do
     status = response.status
     request_title = request_title(status, content_type, request.name)
 
-    ["+ Response #{request_title} \n",
+    [
+      "+ Response #{request_title} \n",
       response.headers |> filter_headers() |> print_headers() |> indent(4),
-      response.body |> print_body() |> indent(4)]
+      response.body |> print_body() |> indent(4)
+    ]
     |> Enum.reject(&(&1 == ""))
     |> Enum.join("\n")
   end
@@ -239,6 +254,7 @@ defmodule BlueBird.Writer.Blueprint do
   defp request_title(status, content_type, nil = _name) do
     "#{status}#{content_type}"
   end
+
   defp request_title(status, content_type, name) do
     "#{status} #{name}#{content_type}"
   end
@@ -347,6 +363,7 @@ defmodule BlueBird.Writer.Blueprint do
       "+ Fields supported:\n\n" <> parameter_list(fields)
     end
   end
+
   defp print_route_fields(_) do
     ""
   end
@@ -529,6 +546,8 @@ defmodule BlueBird.Writer.Blueprint do
   end
 
   defp first_char(str) do
+    IO.inspect(str)
+
     str
     |> String.at(0)
     |> String.downcase()
