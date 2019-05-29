@@ -84,6 +84,7 @@ defmodule BlueBird.Controller do
     note = extract_option(metadata, :note)
     warning = extract_option(metadata, :warning)
     parameters = extract_parameters(metadata)
+    fields = extract_fields(metadata)
 
     quote do
       def api_doc(unquote(method_str), unquote(path)) do
@@ -95,7 +96,8 @@ defmodule BlueBird.Controller do
           method: unquote(method_str),
           warning: unquote(warning),
           path: unquote(path),
-          parameters: unquote(Macro.escape(parameters))
+          parameters: unquote(Macro.escape(parameters)),
+          fields: unquote(Macro.escape(fields))
         }
       end
     end
@@ -173,6 +175,14 @@ defmodule BlueBird.Controller do
   defp extract_parameters(metadata) do
     metadata
     |> Keyword.get_values(:parameter)
+    |> Enum.reduce([], fn param, list -> [param_to_map(param) | list] end)
+    |> Enum.reverse()
+  end
+
+  @spec extract_fields([{atom, any}]) :: [Parameter.t()]
+  defp extract_fields(metadata) do
+    metadata
+    |> Keyword.get_values(:field)
     |> Enum.reduce([], fn param, list -> [param_to_map(param) | list] end)
     |> Enum.reverse()
   end

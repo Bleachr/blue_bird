@@ -86,9 +86,6 @@ defmodule BlueBird.Writer.Blueprint do
            |> replace_path_params()
            |> inject_optional_parameters(optional_parameters)
 
-    IO.puts path
-    IO.puts "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-"
-
     "## #{beautify(random_route.resource)} [#{path}]\n\n" <> process_routes(routes)
   end
 
@@ -315,7 +312,8 @@ defmodule BlueBird.Writer.Blueprint do
   @spec print_route_definition(Route.t()) :: String.t()
   defp print_route_definition(route) do
     print_route_header(route.method, route.title) <>
-      print_route_description(route.description)
+      print_route_description(route.description) <>
+      print_route_fields(route.fields)
   end
 
   defp inject_optional_parameters(path, parameters) when is_list(parameters) do
@@ -340,6 +338,18 @@ defmodule BlueBird.Writer.Blueprint do
   @spec print_route_description(String.t() | nil) :: String.t()
   defp print_route_description(nil), do: ""
   defp print_route_description(description), do: "#{description}\n"
+
+  @spec print_route_fields(list() | nil) :: String.t()
+  defp print_route_fields(fields) when is_list(fields) do
+    if Enum.empty?(fields) do
+      ""
+    else
+      "+ Fields supported:\n\n" <> parameter_list(fields)
+    end
+  end
+  defp print_route_fields(_) do
+    ""
+  end
 
   ## Attributes
 

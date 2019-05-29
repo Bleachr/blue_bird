@@ -12,6 +12,7 @@ defmodule BlueBird.Route do
     method: "",
     path: "",
     parameters: [],
+    fields: [],
     requests: []
   ]
 
@@ -28,6 +29,7 @@ defmodule BlueBird.Route do
           note: String.t() | nil,
           warning: String.t() | nil,
           parameters: [BlueBird.Parameter.t()],
+          fields: [BlueBird.Parameter.t()],
           requests: [BlueBird.Request.t()]
         }
 end
