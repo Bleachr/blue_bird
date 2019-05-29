@@ -15,7 +15,7 @@ defmodule BlueBird.Writer.Blueprint do
     doc_routes =
       docs.routes
       |> group_routes(:group)
-      |> Enum.sort_by(&(elem(&1,0)))
+      |> Enum.sort_by(&(first_char(elem(&1,0))))
       |> Enum.map(fn {group_name, routes} -> {beautify(group_name), routes} end)
       |> process_groups(docs.groups)
 
@@ -34,7 +34,7 @@ defmodule BlueBird.Writer.Blueprint do
   defp process_group({nil, routes}, _) do
     routes
     |> group_routes(:resource)
-    |> Enum.sort_by(&(elem(&1,0)))
+    |> Enum.sort_by(&(first_char(elem(&1,0))))
     |> process_resources
   end
   defp process_group({group_name, routes}, groups_map) do
@@ -526,5 +526,11 @@ defmodule BlueBird.Writer.Blueprint do
     |> Map.keys()
     |> Enum.map(&to_string(&1))
     |> Enum.join(",")
+  end
+
+  defp first_char(str) do
+    str
+    |> String.at(0)
+    |> String.downcase()
   end
 end
