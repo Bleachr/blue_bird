@@ -182,6 +182,29 @@ defmodule BlueBird.Writer.Blueprint do
     |> indent(4)
   end
 
+  defp fields_list(fields) do
+    fields
+    |> Enum.map_join("\n", &process_field(&1))
+    |> indent(4)
+  end
+
+  defp process_field(field) do
+    [
+      print_field_main(field),
+      field.additional_desc |> print_param_additional_desc() |> indent(4),
+      field.default |> print_param_default() |> indent(4),
+      field.members |> print_param_members() |> indent(4)
+    ]
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.join("\n")
+  end
+
+  defp print_field_main(field) do
+    "- #{field.name}#{example_to_string(field.example)} " <>
+      "(#{field.type}, #{optional_to_str(field.optional)})" <>
+      description_to_str(field.description) <> "\n"
+  end
+
   @spec process_parameter(Parameter.t()) :: String.t()
   defp process_parameter(param) do
     [
@@ -242,7 +265,7 @@ defmodule BlueBird.Writer.Blueprint do
     request_title = request_title(status, content_type, request.name)
 
     [
-      "+ Response #{request_title} \n",
+      "+ Response #{status} #{content_type} \n",
       response.headers |> filter_headers() |> print_headers() |> indent(4),
       response.body |> print_body() |> indent(4)
     ]
@@ -256,7 +279,7 @@ defmodule BlueBird.Writer.Blueprint do
   end
 
   defp request_title(status, content_type, name) do
-    "#{status} #{name}#{content_type}"
+    "#{name}#{content_type}"
   end
 
   @spec get_content_type([{String.t(), String.t()}]) :: String.t()
@@ -360,7 +383,7 @@ defmodule BlueBird.Writer.Blueprint do
     if Enum.empty?(fields) do
       ""
     else
-      "+ Fields supported:\n\n" <> parameter_list(fields)
+      "\n\n" <> fields_list(fields)
     end
   end
 
@@ -545,11 +568,17 @@ defmodule BlueBird.Writer.Blueprint do
     |> Enum.join(",")
   end
 
-  defp first_char(str) do
-    IO.inspect(str)
-
+  defp first_char(at) when is_atom(at) do
+    at
+    |> Atom.to_string()
+    |> first_char()
+  end
+  defp first_char(str) when is_binary(str) do
     str
     |> String.at(0)
     |> String.downcase()
+  end
+  defp first_char(_) do
+    false
   end
 end
