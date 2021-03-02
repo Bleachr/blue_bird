@@ -8,6 +8,7 @@ defmodule Mix.Tasks.Bird.Gen.Docs do
   use Mix.Task
 
   alias Mix.Project
+  alias BlueBird.Config
 
   @aglio_default "aglio"
 
@@ -24,7 +25,7 @@ defmodule Mix.Tasks.Bird.Gen.Docs do
   @doc false
   def run(_args) do
     aglio_path =
-      case Application.get_env(:blue_bird, :aglio_path, @aglio_default) do
+      case Config.get(:aglio_path, @aglio_default) do
         @aglio_default ->
           if System.find_executable(@aglio_default) == nil do
             raise @aglio_missing
@@ -42,8 +43,8 @@ defmodule Mix.Tasks.Bird.Gen.Docs do
           absolute_local_path
       end
 
-    docs_path = Application.get_env(:blue_bird, :docs_path, "docs")
-    docs_theme = Application.get_env(:blue_bird, :docs_theme, "triple")
+    docs_path = Config.get(:docs_path, "docs")
+    docs_theme = Config.get(:docs_theme, "triple")
 
     path =
       Project.build_path()

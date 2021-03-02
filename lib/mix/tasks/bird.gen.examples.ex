@@ -5,7 +5,7 @@ defmodule Mix.Tasks.Bird.Gen.Examples do
   use Mix.Task
 
   alias BlueBird.Test.Support.Examples
-  alias BlueBird.Writer
+  alias BlueBird.{Writer, Config}
   alias Mix.Project
 
   @doc false
@@ -15,8 +15,8 @@ defmodule Mix.Tasks.Bird.Gen.Examples do
               "\"npm install aglio -g\""
     end
 
-    docs_path = Application.get_env(:blue_bird, :docs_path, "docs")
-    docs_theme = Application.get_env(:blue_bird, :docs_theme, "triple")
+    docs_path = Config.get(:docs_path, "docs")
+    docs_theme = Config.get(:docs_theme, "triple")
 
     project_path =
       Project.load_paths()
